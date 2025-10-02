@@ -19,6 +19,7 @@ public class UserDTO {
         private String message;
         private LocalDate createData;
         private String password;
+        private String confirmPassword;
 }
 
 

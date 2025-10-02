@@ -41,14 +41,22 @@ public class UserService {
     }
 
     private void validateUserDto(UserDTO userDTO) {
-        if (userRepository.existsByUsername(userDTO.getUsername())) {
+        String password = userDTO.getPassword();
+        String confirmPassword = userDTO.getConfirmPassword();
+        String username = userDTO.getUsername();
+        String email = userDTO.getEmail();
+
+        if (userRepository.existsByUsername(username)) {
             throw new UserAlreadyExistsException("Username já está em uso!");
         }
-        if (userRepository.existsByEmail(userDTO.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             throw new UserAlreadyExistsException("Email já está em uso!");
         }
-        if (userDTO.getPassword().length() < TAMANHO_MINIMO_SENHA) {
+        if (confirmPassword.length() < TAMANHO_MINIMO_SENHA) {
             throw new InvalidPasswordException("Sua senha precisa ter pelo menos 8 caracteres");
+        }
+        if (!password.equals(confirmPassword)){
+            throw new InvalidPasswordException("Senhas não conferem");
         }
     }
 }
