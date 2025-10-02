@@ -2,6 +2,8 @@ package com.example.to_gift_you.service;
 
 import com.example.to_gift_you.domain.User;
 import com.example.to_gift_you.dto.UserDTO;
+import com.example.to_gift_you.exception.user.InvalidPasswordException;
+import com.example.to_gift_you.exception.user.UserAlreadyExistsException;
 import com.example.to_gift_you.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,13 +18,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
 
-    public String registerUser (UserDTO userDTO) {
-        if (userRepository.existsByUsername(userDTO.getUsername())) {
-            return "Error: Username já está em uso!";
-        }
-        if(userRepository.existsByEmail(userDTO.getEmail())) {
-            return "Error: Email já está em uso!";
-        }
+    private static final int TAMANHO_MINIMO_SENHA = 8;
+
+    public String registerUser(UserDTO userDTO) {
+        validateUserDto(userDTO);
 
         User newUser = new User(
                 null,
@@ -41,4 +40,16 @@ public class UserService {
         return "Usuário cadastrado com sucesso";
     }
 
+    private void validateUserDto(UserDTO userDTO) {
+        if (userRepository.existsByUsername(userDTO.getUsername())) {
+            throw new UserAlreadyExistsException("Username já está em uso!");
+        }
+        if (userRepository.existsByEmail(userDTO.getEmail())) {
+            throw new UserAlreadyExistsException("Email já está em uso!");
+        }
+        if (userDTO.getPassword().length() < TAMANHO_MINIMO_SENHA) {
+            throw new InvalidPasswordException("Sua senha precisa ter pelo menos 8 caracteres");
+        }
+    }
 }
+
