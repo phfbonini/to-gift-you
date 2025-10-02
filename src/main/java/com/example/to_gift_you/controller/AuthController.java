@@ -2,29 +2,27 @@ package com.example.to_gift_you.controller;
 
 
 import com.example.to_gift_you.domain.User;
-import com.example.to_gift_you.repository.UserRepository;
+import com.example.to_gift_you.dto.UserDTO;
 import com.example.to_gift_you.security.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.to_gift_you.service.UserService;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    @Autowired
-    AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtils;
+    private final UserService userService;
 
-    @Autowired
-    PasswordEncoder encoder;
-
-    @Autowired
-    JwtUtil jwtUtils;
+    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtils, UserService userService) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
+        this.userService = userService;
+    }
 
     @PostMapping("/signin")
     public String authenticateUser(@RequestBody User user) {
@@ -37,17 +35,10 @@ public class AuthController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return jwtUtils.generateToken(userDetails.getUsername());
     }
+
     @PostMapping("/signup")
-    public String registerUser(@RequestBody User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            return "Error: Username is already taken!";
-        }
-        User newUser = new User(
-                null,
-                user.getUsername(),
-                encoder.encode(user.getPassword())
-        );
-        userRepository.save(newUser);
-        return "User registered successfully!";
+    public String registerUser(@RequestBody UserDTO user) {
+        return userService.registerUser(user);
     }
 }
+
