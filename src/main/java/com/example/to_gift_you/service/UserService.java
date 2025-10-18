@@ -1,7 +1,8 @@
 package com.example.to_gift_you.service;
 
 import com.example.to_gift_you.domain.User;
-import com.example.to_gift_you.dto.UserDTO;
+import com.example.to_gift_you.dto.RegisterRequestDTO;
+import com.example.to_gift_you.dto.RegisterResponseDTO;
 import com.example.to_gift_you.exception.user.InvalidPasswordException;
 import com.example.to_gift_you.exception.user.UserAlreadyExistsException;
 import com.example.to_gift_you.repository.UserRepository;
@@ -20,44 +21,53 @@ public class UserService {
 
     private static final int TAMANHO_MINIMO_SENHA = 8;
 
-    public String registerUser(UserDTO userDTO) {
-        validateUserDto(userDTO);
+    public RegisterResponseDTO registerUser(RegisterRequestDTO requestDTO) {
+        validateRegisterRequest(requestDTO);
 
         User newUser = new User(
                 null,
-                userDTO.getUsername(),
-                userDTO.getName(),
-                userDTO.getEmail(),
-                userDTO.getProfilePicture(),
-                userDTO.getBiography(),
+                requestDTO.getUsername(),
+                requestDTO.getNome(),
+                requestDTO.getEmail(),
+                null,
+                null,
                 LocalDate.now(),
                 Boolean.TRUE,
-                encoder.encode(userDTO.getPassword())
+                encoder.encode(requestDTO.getSenha())
         );
 
-        userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
 
-        return "Usuário cadastrado com sucesso";
+        return RegisterResponseDTO.success(
+                savedUser.getId(),
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getProfilePicture()
+        );
     }
 
-    private void validateUserDto(UserDTO userDTO) {
-        String password = userDTO.getPassword();
-        String confirmPassword = userDTO.getConfirmPassword();
-        String username = userDTO.getUsername();
-        String email = userDTO.getEmail();
+    private void validateRegisterRequest(RegisterRequestDTO requestDTO) {
+        String password = requestDTO.getSenha();
+        String confirmPassword = requestDTO.getConfirmacaoSenha();
+        String email = requestDTO.getEmail();
+        String username = requestDTO.getUsername();
 
         if (userRepository.existsByUsername(username)) {
             throw new UserAlreadyExistsException("Username já está em uso!");
         }
+        
         if (userRepository.existsByEmail(email)) {
             throw new UserAlreadyExistsException("Email já está em uso!");
         }
-        if (confirmPassword.length() < TAMANHO_MINIMO_SENHA) {
+        
+        if (password.length() < TAMANHO_MINIMO_SENHA) {
             throw new InvalidPasswordException("Sua senha precisa ter pelo menos 8 caracteres");
         }
-        if (!password.equals(confirmPassword)){
+        
+        if (!password.equals(confirmPassword)) {
             throw new InvalidPasswordException("Senhas não conferem");
         }
     }
+
 }
 
