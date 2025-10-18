@@ -33,13 +33,17 @@ public class User {
     @Email(message = "Email inválido")
     private String email;
 
+    @Column(name = "profilepicture")
     private String profilePicture;
 
     @Size(max = 500, message = "Biografia não pode ter mais de 500 caracteres")
+    @Column(name = "biography")
     private String biography;
 
+    @Column(name = "createdate")
     private LocalDate createDate;
 
+    @Column(name = "active")
     private Boolean active;
 
     @Column(nullable = false)
